@@ -1,70 +1,50 @@
-# Getting Started with Create React App
+# Handling Lightspeed API Responses
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A sample response can be found in the ./src/apiResponse.js file.
 
-## Available Scripts
+The goal is to take the response (typically a list of inventory items)
+and manipulate it in a few ways.
 
-In the project directory, you can run:
+I'll need to:
 
-### `npm start`
+- Use the ItemShops load_relation in order to get current inventory levels.
+- I will need to parse out the ItemShop details for each shop that was selected
+  for comparison.
+  - This is because each item's ItemShop is an array containing all 23+ location
+    data. That's too much data, but I'm forced to collect it.
+- I'll use @tanstack/react-table to display the data.
+  - The `<ReactTableV8 itemData={} fromShopData={} toShopData={} />` will have
+    3 props (for now\*) that hold the original itemList returned from the API
+    - `itemData` is the original, untouched API response.
+    - `fromShopData` is a list of ItemShops for each main Item.
+    - `toShopData` shares the same idea as `fromShopData`.
+  - \*can be changed to be a single prop with some optimization.
+    - Will require the use of an `Object.()` method, possibly
+      `Object.assign()` or `Object.create()` in combination with
+      some ID matching by use of `arr.filter()` or `arr.find()`.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Flow of Importance
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### fromShopData
 
-### `npm test`
+The `fromShopData` variable is the more important thing to figure
+out. It uses a concoction of array methods on the apiResponse that
+eventually returns the ItemShop data based on shopID. It also makes
+sure that only Items with qoh > 0 are returned.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Find the matches
 
-### `npm run build`
+The next step is to remove the items (by itemID) from the original
+apiResponse that are not present in the `fromShopData` list. This is
+stored in a varibale called `matches`.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### toShopData
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+The setup of `toShopData` is nearly identical to `fromShopData`'s setup.
+The difference is `toShopData` is created from referencing the `matches`
+variable, which is the result of finding the `fromShopData` first.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+---
 
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+It's important to base the `toShopData` from the result of `fromShopData`'s
+`matches` to avoid listing more data than necessary.
